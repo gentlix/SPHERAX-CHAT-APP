@@ -1,0 +1,14 @@
+{
+  "name": "websocket-chatapp",
+  "version": "1.0.0",
+  "description": "Simple WebSocket Chat Application",
+  "scripts": {
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "dev": "cd server && npm run dev",
+    "start": "cd server && npm start"
+  },
+  "keywords": ["websocket", "chat", "realtime"],
+  "author": "",
+  "license": "MIT"
+}
+
