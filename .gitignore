@@ -7,5 +7,3 @@ dist/
 build/
 .vscode/
 .idea/
-client/config.js
-
