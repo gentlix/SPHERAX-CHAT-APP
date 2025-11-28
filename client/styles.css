@@ -25,6 +25,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative;
 }
 
 header {
@@ -34,6 +35,9 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0; /* Prevent header from shrinking */
+    position: relative;
+    z-index: 10;
 }
 
 header h1 {
@@ -131,8 +135,9 @@ header h1 {
 .chat-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1; /* Take remaining space */
     min-height: 0; /* Important for flexbox scrolling */
+    overflow: hidden; /* Prevent container from scrolling */
 }
 
 .chat-messages {
