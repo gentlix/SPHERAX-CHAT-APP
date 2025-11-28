@@ -39,7 +39,8 @@ websocket-chatapp/
 ├── client/
 │   ├── index.html         # Frontend HTML
 │   ├── styles.css         # Frontend styles
-│   └── app.js             # Frontend JavaScript
+│   ├── app.js             # Frontend JavaScript
+│   └── config.js          # Client configuration (WebSocket URL)
 ├── package.json           # Root package.json
 ├── README.md              # This file
 └── .gitignore            # Git ignore rules
@@ -175,12 +176,69 @@ Health check endpoint to verify server is running.
 
 ## Environment Variables
 
-- `PORT` - Server port (default: 3000)
+### Server Environment Variables
 
-Example:
+The server uses `.env` files for configuration (via `dotenv` package). A `.env.example` file is provided as a template.
+
+**Available variables:**
+- `PORT` - Server port (default: 3000)
+- `CORS_ORIGIN` - Allowed CORS origins for separate client deployment (default: '*')
+  - Use comma-separated list for multiple origins: `https://example.com,https://app.example.com`
+  - Use '*' to allow all origins (not recommended for production)
+- `SERVE_CLIENT` - Whether to serve static client files (default: 'true')
+  - Set to 'false' when deploying client separately
+
+**Setup:**
 ```bash
-PORT=8080 npm run dev
+# Copy the example file
+cp server/.env.example server/.env
+
+# Edit server/.env with your values
 ```
+
+**Examples:**
+```bash
+# Using .env file (recommended)
+# Edit server/.env, then:
+cd server
+npm run dev
+
+# Or override via command line
+PORT=8080 npm run dev
+
+# Production with specific CORS origin
+PORT=3000 CORS_ORIGIN=https://your-client-domain.com npm start
+
+# API-only server (no static files)
+SERVE_CLIENT=false PORT=3000 npm start
+```
+
+### Client Configuration
+
+The client uses `client/config.js` to configure the WebSocket server URL.
+
+> **Note:** A `config.example.js` file is provided. Copy it to `config.js` and update with your values.
+
+**For local development** (server and client on same host):
+```javascript
+const CONFIG = {
+  WS_SERVER_URL: '',  // Empty = auto-detect from current host
+  AUTO_DETECT: true,
+};
+```
+
+**For production** (separate server deployment):
+```javascript
+const CONFIG = {
+  WS_SERVER_URL: 'wss://your-server.com',  // Your server URL
+  AUTO_DETECT: false,
+};
+```
+
+**Protocol notes:**
+- Use `ws://` for HTTP connections
+- Use `wss://` for HTTPS connections (required for secure sites)
+- Include port if non-standard: `ws://your-server.com:3000`
 
 ## Code Structure
 
@@ -225,6 +283,83 @@ Tested in:
 - Firefox (latest)
 - Safari (latest)
 
+## Deployment
+
+### Separate Server and Client Deployment
+
+This application supports deploying the server and client separately, which is useful for:
+- Using a CDN for the client
+- Deploying client to static hosting (Netlify, Vercel, GitHub Pages)
+- Deploying server to cloud platforms (Heroku, Railway, Render, etc.)
+
+#### Server Deployment
+
+1. **Set environment variables:**
+   
+   Option A: Use `.env` file (recommended)
+   ```bash
+   # Copy example file
+   cp server/.env.example server/.env
+   
+   # Edit server/.env with your values:
+   PORT=3000
+   CORS_ORIGIN=https://your-client-domain.com
+   SERVE_CLIENT=false
+   ```
+   
+   Option B: Set via hosting platform's environment variable settings
+   ```bash
+   PORT=3000
+   CORS_ORIGIN=https://your-client-domain.com
+   SERVE_CLIENT=false
+   ```
+
+2. **Deploy to your hosting platform:**
+   - Ensure Node.js is installed
+   - Run `npm install` in the `server` directory
+   - Start with `npm start` or `node server.js`
+   - The server will automatically load `.env` file if present
+
+#### Client Deployment
+
+1. **Create `client/config.js` from example:**
+   ```bash
+   cp client/config.example.js client/config.js
+   ```
+
+2. **Update `client/config.js` with your server URL:**
+   ```javascript
+   const CONFIG = {
+     WS_SERVER_URL: 'wss://your-server-domain.com',
+     AUTO_DETECT: false,
+   };
+   ```
+
+3. **Deploy static files:**
+   - Upload all files from the `client/` directory to your static host
+   - Ensure `index.html`, `app.js`, `config.js`, and `styles.css` are accessible
+   - The client will connect to the configured WebSocket server
+
+#### Example Deployment Scenarios
+
+**Scenario 1: Server on Heroku, Client on Netlify**
+- Server: `https://chat-server.herokuapp.com`
+- Client: `https://chat-app.netlify.app`
+- Set `CORS_ORIGIN=https://chat-app.netlify.app` on server
+- Set `WS_SERVER_URL: 'wss://chat-server.herokuapp.com'` in client config
+
+**Scenario 2: Server on Railway, Client on Vercel**
+- Server: `https://chat-api.railway.app`
+- Client: `https://chat.vercel.app`
+- Set `CORS_ORIGIN=https://chat.vercel.app` on server
+- Set `WS_SERVER_URL: 'wss://chat-api.railway.app'` in client config
+
+**Scenario 3: Both on same domain**
+- Server: `https://api.example.com`
+- Client: `https://example.com`
+- Set `CORS_ORIGIN=https://example.com` on server
+- Set `WS_SERVER_URL: 'wss://api.example.com'` in client config
+
 ## Development Notes
 
 - The server uses in-memory storage (no database)
@@ -232,6 +367,8 @@ Tested in:
 - Maximum username length: 20 characters
 - Maximum message length: 500 characters
 - Messages are not persisted (lost on server restart)
+- For production, configure CORS_ORIGIN to restrict access
+- Use `wss://` (secure WebSocket) when deploying over HTTPS
 
 ## License
 

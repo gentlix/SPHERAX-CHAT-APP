@@ -63,8 +63,21 @@ class ChatApp {
     }
 
     connect() {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}`;
+        let wsUrl;
+        const config = window.CHAT_CONFIG || {};
+
+        // Use configured URL if provided, otherwise auto-detect
+        if (config.WS_SERVER_URL && config.WS_SERVER_URL.trim() !== '') {
+            wsUrl = config.WS_SERVER_URL;
+        } else if (config.AUTO_DETECT !== false) {
+            // Auto-detect: use same protocol and host as the current page
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            wsUrl = `${protocol}//${window.location.host}`;
+        } else {
+            throw new Error('WebSocket server URL not configured');
+        }
+
+        console.log('Connecting to WebSocket server:', wsUrl);
 
         try {
             this.ws = new WebSocket(wsUrl);

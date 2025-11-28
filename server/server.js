@@ -1,3 +1,6 @@
+// Load environment variables from .env file
+require('dotenv').config();
+
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
@@ -8,12 +11,38 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
+const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+const SERVE_CLIENT = process.env.SERVE_CLIENT !== 'false';
 
 // Store connected clients with their usernames
 const clients = new Map();
 
-// Serve static files from client directory
-app.use(express.static(path.join(__dirname, '../client')));
+// CORS middleware for separate client deployment
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  if (CORS_ORIGIN === '*') {
+    res.header('Access-Control-Allow-Origin', '*');
+  } else if (origin) {
+    const allowedOrigins = CORS_ORIGIN.split(',').map(o => o.trim());
+    if (allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+    }
+  }
+  
+  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// Serve static files from client directory (only if serving from same origin)
+if (process.env.SERVE_CLIENT !== 'false') {
+  app.use(express.static(path.join(__dirname, '../client')));
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {

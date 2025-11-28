@@ -1,9 +1,11 @@
 node_modules/
 .env
+.env.local
 .DS_Store
 *.log
 dist/
 build/
 .vscode/
 .idea/
+client/config.js
 
