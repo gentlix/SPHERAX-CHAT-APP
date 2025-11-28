@@ -8,7 +8,7 @@ class ChatApp {
 
         this.initializeElements();
         this.attachEventListeners();
-        this.loadUsername();
+        this.loadUsername();        
     }
 
     initializeElements() {
